@@ -1,0 +1,16 @@
+name: Ephemeral API
+development: true
+
+server:
+  host: localhost
+  port: 8080
+  cors_origins:
+    - "http://localhost:5173"
+
+database:
+  url: ""
+  max_conns: 20
+  migrations_path: "database/migrations"
+
+jwt:
+  expiry_hours: 24
