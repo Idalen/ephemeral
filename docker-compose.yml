@@ -1,0 +1,54 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ephemeral-postgres
+    environment:
+      POSTGRES_USER: ephemeral
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ephemeral}
+      POSTGRES_DB: ephemeral
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ephemeral-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ephemeral"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ephemeral-backend
+    environment:
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DATABASE_URL: postgres://ephemeral:${DB_PASSWORD:-ephemeral}@postgres:5432/ephemeral?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ephemeral-net
+    restart: unless-stopped
+
+  website:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: ephemeral-website
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - ephemeral-net
+    restart: unless-stopped
+
+networks:
+  ephemeral-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
