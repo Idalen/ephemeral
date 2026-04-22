@@ -65,21 +65,42 @@ export default function Landing() {
           textAlign: 'center',
         }}
       >
-        <h1
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontWeight: '300',
-            fontStyle: 'italic',
-            fontSize: 'clamp(72px, 12vw, 180px)',
-            letterSpacing: '-0.015em',
-            lineHeight: '0.92',
-            margin: 0,
-            color: 'var(--color-text)',
-            animation: 'fade-up 1.6s cubic-bezier(0.16, 1, 0.3, 1) both',
-          }}
-        >
-          ephemeral
-        </h1>
+        <div style={{ position: 'relative' }}>
+          <img
+            src="/logo.png"
+            alt=""
+            aria-hidden
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: '100%',
+              transform: 'translate(-50%, 50%)',
+              width: 'clamp(340px, 46vw, 520px)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 18%, transparent 58%)',
+              maskImage: 'linear-gradient(to bottom, black 18%, transparent 58%)',
+              pointerEvents: 'none',
+              userSelect: 'none',
+              animation: 'fade-in 1.4s ease both',
+            }}
+          />
+          <h1
+            style={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontWeight: '300',
+              fontStyle: 'italic',
+              fontSize: 'clamp(72px, 12vw, 180px)',
+              letterSpacing: '-0.015em',
+              lineHeight: '0.92',
+              margin: 0,
+              color: 'var(--color-text)',
+              animation: 'fade-up 1.6s cubic-bezier(0.16, 1, 0.3, 1) both',
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
+            ephemeral
+          </h1>
+        </div>
 
         <p
           style={{

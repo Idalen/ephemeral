@@ -1,5 +1,9 @@
+import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import axios from 'axios'
+import { authLogin } from '../../api/auth'
+import { useAuth } from '../../context/AuthContext'
 
 interface LoginForm {
   username: string
@@ -21,6 +25,7 @@ const inputStyle: React.CSSProperties = {
 
 export default function Login() {
   const navigate = useNavigate()
+  const { login, isAuthenticated } = useAuth()
   const {
     register,
     handleSubmit,
@@ -28,14 +33,20 @@ export default function Login() {
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>()
 
-  async function onSubmit(_data: LoginForm) {
+  useEffect(() => {
+    if (isAuthenticated) navigate('/feed', { replace: true })
+  }, [isAuthenticated, navigate])
+
+  async function onSubmit(data: LoginForm) {
     try {
-      // TODO: POST /api/auth/login
-      // const res = await apiClient.post<AuthResponse>('/auth/login', data)
-      // login(res.data.token, res.data.user)
-      navigate('/feed')
-    } catch {
-      setError('root', { message: 'Invalid username or password.' })
+      const res = await authLogin(data)
+      login(res.data.token, res.data.user)
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 403) {
+        setError('root', { message: 'Account pending approval or disabled.' })
+      } else {
+        setError('root', { message: 'Invalid username or password.' })
+      }
     }
   }
 
@@ -89,10 +100,7 @@ export default function Login() {
               {...register('username', { required: 'Username is required' })}
               placeholder="Username"
               autoComplete="username"
-              style={{
-                ...inputStyle,
-                borderColor: errors.username ? '#c0392b' : 'var(--color-border)',
-              }}
+              style={{ ...inputStyle, borderColor: errors.username ? '#c0392b' : 'var(--color-border)' }}
             />
             {errors.username && (
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: '#c0392b' }}>
@@ -107,10 +115,7 @@ export default function Login() {
               type="password"
               placeholder="Password"
               autoComplete="current-password"
-              style={{
-                ...inputStyle,
-                borderColor: errors.password ? '#c0392b' : 'var(--color-border)',
-              }}
+              style={{ ...inputStyle, borderColor: errors.password ? '#c0392b' : 'var(--color-border)' }}
             />
             {errors.password && (
               <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: '#c0392b' }}>
@@ -157,10 +162,7 @@ export default function Login() {
             }}
           >
             Don't have an account?{' '}
-            <Link
-              to="/join"
-              style={{ color: 'var(--color-text)', textDecoration: 'underline' }}
-            >
+            <Link to="/join" style={{ color: 'var(--color-text)', textDecoration: 'underline' }}>
               Request access
             </Link>
           </p>

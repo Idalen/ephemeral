@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import axios from 'axios'
+import { authRegister } from '../../api/auth'
 
 interface JoinForm {
   username: string
@@ -25,12 +27,21 @@ export default function Join() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<JoinForm>()
 
-  function onSubmit(_data: JoinForm) {
-    // TODO: POST /api/auth/register
-    setSubmitted(true)
+  async function onSubmit(data: JoinForm) {
+    try {
+      await authRegister(data)
+      setSubmitted(true)
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        setError('username', { message: 'Username already taken.' })
+      } else {
+        setError('root', { message: 'Something went wrong. Please try again.' })
+      }
+    }
   }
 
   return (
@@ -110,13 +121,15 @@ export default function Join() {
           >
             <div>
               <input
-                {...register('username', { required: 'Username is required' })}
+                {...register('username', {
+                  required: 'Username is required',
+                  minLength: { value: 3, message: 'Minimum 3 characters' },
+                  maxLength: { value: 30, message: 'Maximum 30 characters' },
+                  pattern: { value: /^[a-zA-Z0-9_-]+$/, message: 'Letters, digits, _ and - only' },
+                })}
                 placeholder="Username"
                 autoComplete="username"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.username ? '#c0392b' : 'var(--color-border)',
-                }}
+                style={{ ...inputStyle, borderColor: errors.username ? '#c0392b' : 'var(--color-border)' }}
               />
               {errors.username && (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: '#c0392b' }}>
@@ -134,10 +147,7 @@ export default function Join() {
                 type="password"
                 placeholder="Password"
                 autoComplete="new-password"
-                style={{
-                  ...inputStyle,
-                  borderColor: errors.password ? '#c0392b' : 'var(--color-border)',
-                }}
+                style={{ ...inputStyle, borderColor: errors.password ? '#c0392b' : 'var(--color-border)' }}
               />
               {errors.password && (
                 <p style={{ margin: '0.35rem 0 0', fontSize: '0.7rem', color: '#c0392b' }}>
@@ -145,6 +155,12 @@ export default function Join() {
                 </p>
               )}
             </div>
+
+            {errors.root && (
+              <p style={{ margin: 0, fontSize: '0.7rem', color: '#c0392b', textAlign: 'center' }}>
+                {errors.root.message}
+              </p>
+            )}
 
             <button
               type="submit"
@@ -178,10 +194,7 @@ export default function Join() {
               }}
             >
               Already have an account?{' '}
-              <Link
-                to="/login"
-                style={{ color: 'var(--color-text)', textDecoration: 'underline' }}
-              >
+              <Link to="/login" style={{ color: 'var(--color-text)', textDecoration: 'underline' }}>
                 Sign in
               </Link>
             </p>
